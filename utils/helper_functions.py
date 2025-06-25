@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import pandas as pd
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from typing import List, Callable
 from langchain_core.messages import (
     BaseMessage,
@@ -23,7 +24,7 @@ def get_current_time() -> str:
     Get the current time formatted nicely for display.
     """
     # Get current datetime
-    now = datetime.now()
+    now = datetime.now(tzinfo=ZoneInfo("Europe/Zurich"))
     # Format as a human-readable sentence
     formatted = now.strftime("%A, %B %d, %Y at %H:%M")
     return f"It is currently {formatted}."
@@ -188,49 +189,6 @@ def pretty_print(messages: List[BaseMessage]) -> None:
         # Print the label and the actual content
         print(f"{label} {msg.content}\n")
 
-def debug_messages(chunks):
-    """Extract and print all content from agent chunks including debug information."""
-    for chunk in chunks:
-        for agent_name, data in chunk.items():
-            print(f"=== {agent_name.upper()} ===")
-            
-            if 'messages' in data:
-                for i, message in enumerate(data['messages']):
-                    print(f"  Message {i+1}:")
-                    print(f"    Type: {type(message).__name__}")
-                    
-                    # Print message role if available
-                    if hasattr(message, 'role'):
-                        print(f"    Role: {message.role}")
-                    
-                    # Print message content
-                    if hasattr(message, 'content') and message.content:
-                        print(f"    Content: {message.content}")
-                    
-                    # Print tool calls if available
-                    if hasattr(message, 'tool_calls') and message.tool_calls:
-                        print(f"    Tool Calls:")
-                        for j, tool_call in enumerate(message.tool_calls):
-                            print(f"      {j+1}. {tool_call.get('name', 'Unknown tool')}")
-                            if 'args' in tool_call:
-                                print(f"         Args: {tool_call['args']}")
-                    
-                    # Print additional message attributes
-                    if hasattr(message, 'additional_kwargs') and message.additional_kwargs:
-                        print(f"    Additional: {message.additional_kwargs}")
-                    
-                    # Print name if available (for tool messages)
-                    if hasattr(message, 'name') and message.name:
-                        print(f"    Tool Name: {message.name}")
-                    
-                    print()
-            
-            # Print any other data in the chunk
-            for key, value in data.items():
-                if key != 'messages':
-                    print(f"  {key}: {value}")
-            
-            print("-" * 50)
 
 def add_human_in_the_loop(
     tool: Callable | BaseTool,

@@ -3,14 +3,6 @@ import os
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 
-def _to_iso(dt: datetime) -> str:
-    """Convert a datetime to an ISO-8601 string (YYYY-MM-DD HH:MM:SS)."""
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-def _from_iso(s: str) -> datetime:
-    """Parse an ISO-8601 string (YYYY-MM-DD HH:MM:SS) into a datetime."""
-    return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
-
 # Initialize the MCP server
 mcp = FastMCP("LoyaltyDB")
 
@@ -61,6 +53,45 @@ def increase_loyalty_points(name: str, points: int) -> str:
     conn.commit()
     conn.close()
     return f"Loyalty points increased by {points} for customer {name}."
+
+@mcp.tool()
+def decrease_loyalty_points(name: str, points: int) -> str:
+    """Decrease loyalty points for a customer."""
+    conn = sqlite3.connect("utils/loyalty.db")
+    cur = conn.cursor()
+    cur.execute("UPDATE customers SET loyalty_points = loyalty_points - ? WHERE name = ?", (points, name))
+    if cur.rowcount == 0:
+        return f"No customer found with name {name}."
+    conn.commit()
+    conn.close()
+    return f"Loyalty points decreased by {points} for customer {name}."
+
+@mcp.tool()
+def set_loyalty_points(name: str, points: int) -> str:
+    """Set loyalty points for a customer."""
+    conn = sqlite3.connect("utils/loyalty.db")
+    cur = conn.cursor()
+    cur.execute("UPDATE customers SET loyalty_points = ? WHERE name = ?", (points, name))
+    if cur.rowcount == 0:
+        return f"No customer found with name {name}."
+    conn.commit()
+    conn.close()
+    return f"Loyalty points set to {points} for customer {name}."
+
+@mcp.tool()
+def get_loyalty_points(name: str) -> str:
+    """Get the loyalty points for a customer."""
+    conn = sqlite3.connect("utils/loyalty.db")
+    cur = conn.cursor()
+    cur.execute("SELECT loyalty_points FROM customers WHERE name = ?", (name,))
+    row = cur.fetchone()
+    conn.close()
+
+    if row is None:
+        return f"No customer found with name {name}."
+    
+    loyalty_points = row[0]
+    return f"Customer {name} has {loyalty_points} loyalty points."
 
 @mcp.tool()
 def top_customers(limit: int = 5) -> str:

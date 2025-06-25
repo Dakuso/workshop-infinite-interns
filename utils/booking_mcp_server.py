@@ -3,14 +3,6 @@ import os
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 
-def _to_iso(dt: datetime) -> str:
-    """Convert a datetime to an ISO-8601 string (YYYY-MM-DD HH:MM:SS)."""
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-def _from_iso(s: str) -> datetime:
-    """Parse an ISO-8601 string (YYYY-MM-DD HH:MM:SS) into a datetime."""
-    return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
-
 # Initialize the MCP server
 mcp = FastMCP("BookingDB")
 
@@ -38,27 +30,17 @@ def add_reservation(name: str, reservation_time: datetime, party_size: int, outs
     return f"Reservation for {name} at {reservation_time} for {party_size} people added {'outside' if outside else 'inside'}."
 
 @mcp.tool()
-def list_todays_reservations() -> str:
-    """List all reservations for today."""
-    today = datetime.now().date()
+def delete_reservation(name: str, reservation_time: datetime) -> str:
+    """Delete a reservation from the database."""
     conn = sqlite3.connect("utils/booking.db")
     cur = conn.cursor()
     cur.execute(
-        "SELECT name, reservation_time, party_size, outside FROM reservations WHERE DATE(reservation_time) = ?",
-        (today,)
+        "DELETE FROM reservations WHERE name = ? AND reservation_time = ?",
+        (name, reservation_time)
     )
-    rows = cur.fetchall()
+    conn.commit()
     conn.close()
-
-    if not rows:
-        return "No reservations for today."
-
-    result = ["Today's Reservations:"]
-    for row in rows:
-        name, reservation_time, party_size, outside = row
-        result.append(f"{name} at {reservation_time} for {party_size} people {'outside' if outside else 'inside'}")
-    
-    return "\n".join(result)
+    return f"Reservation for {name} at {reservation_time} deleted."
 
 @mcp.tool()
 def list_reservations() -> str:
