@@ -18,6 +18,16 @@ from langgraph.prebuilt.interrupt import HumanInterruptConfig, HumanInterrupt
 logging.getLogger('httpx').setLevel(logging.WARNING)
 logging.getLogger('httpcore').setLevel(logging.WARNING)
 
+def get_current_time() -> str:
+    """
+    Get the current time formatted nicely for display.
+    """
+    # Get current datetime
+    now = datetime.now()
+    # Format as a human-readable sentence
+    formatted = now.strftime("%A, %B %d, %Y at %H:%M")
+    return f"It is currently {formatted}."
+
 def list_reservations_df():
     conn = sqlite3.connect("utils/booking.db")
     df = pd.read_sql(
@@ -134,7 +144,6 @@ def pretty_print_chunk(log: dict):
                     for tc in tcs:
                         name = tc.get("name") or tc.get("function", {}).get("name")
                         args = tc.get("args") or tc.get("function", {}).get("arguments")
-                        tid  = tc.get("id")
                         print(f"      • {name} args={args}")
 
             # Also check for top‐level .tool_calls list
@@ -144,8 +153,7 @@ def pretty_print_chunk(log: dict):
                 for tc in top_tcs:
                     name = tc.get("name")
                     args = tc.get("args")
-                    tid  = tc.get("id")
-                    print(f"      • {name} (id={tid}) args={args}")
+                    print(f"      • {name} args={args}")
 
             print()  # blank line between messages
         print()  # blank line between agents
