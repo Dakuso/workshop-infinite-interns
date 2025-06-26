@@ -24,7 +24,7 @@ def get_current_time() -> str:
     Get the current time formatted nicely for display.
     """
     # Get current datetime
-    now = datetime.now(tzinfo=ZoneInfo("Europe/Zurich"))
+    now = datetime.now(ZoneInfo("Europe/Zurich"))
     # Format as a human-readable sentence
     formatted = now.strftime("%A, %B %d, %Y at %H:%M")
     return f"It is currently {formatted}."
