@@ -8,3 +8,6 @@ mcp
 openai
 pandas
 python-weather
+pillow
+dotenv
+imaplib2
